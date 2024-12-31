@@ -34,8 +34,8 @@ func NewUserController(db *sqlx.DB) *UserController {
     *author:Noch
     * ShowAllUser is a handler function for fetching all users.
 */
-func (c *UserController) ShowAllUser(ctx *fiber.Ctx) error {
-	users, err := c.userService.GetAll() 
+func (c *UserController) Show(ctx *fiber.Ctx) error {
+	users, err := c.userService.Show() 
     // Respond with HTTP 500 (Internal Server Error) if retrieval fails
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{ // Return a 500 Internal Server Error
@@ -54,7 +54,7 @@ func (c *UserController) ShowAllUser(ctx *fiber.Ctx) error {
     *author:Noch
     *ShowUserByID is a handler function for fetching a single user by their ID.
 */
-func (c *UserController) ShowUserByID(ctx *fiber.Ctx) error {
+func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 	id, err := strconv.Atoi(ctx.Params("id")) 	// Extract the user ID from the URL params
 	// id , err := c.Params("id")
     // Respond with HTTP 400 (Bad Request) if the ID is invalid
@@ -65,7 +65,7 @@ func (c *UserController) ShowUserByID(ctx *fiber.Ctx) error {
 	}
 
     // Retrieve the user by ID from the service layer
-	user, err := c.userService.GetByID(id)
+	user, err := c.userService.ShowOne(id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(), // Return the error message

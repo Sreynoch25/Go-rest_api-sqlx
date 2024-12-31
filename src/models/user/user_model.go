@@ -27,3 +27,9 @@ type User struct {
 	DeletedAt    *time.Time `json:"deleted_at" db:"deleted_at"`
 }
 
+type UserReponse struct {
+	User []User `json:"user"`
+	Total int   `json:"-"` 
+}
+
+

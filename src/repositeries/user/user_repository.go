@@ -8,8 +8,8 @@ import (
 
 // UserRepository defines the interface for user-related data access operations.
 type UserRepository interface {
-	GetAll() ([]user_model.User, error) 
-	GetByID(id int) (*user_model.User, error)
+	Show() (*user_model.UserReponse, error)
+	ShowOne(id int) (*user_model.User, error)
 }
 
 // userRepository is a struct that implements the UserRepository interface
@@ -24,37 +24,50 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 	}
 }
 
-/*
+/*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
  *Author:Noch
- * GetAll retrieves all user records from the database that are not marked as deleted.
+ * Show retrieves all user records from the database that are not marked as deleted.
 */
-func (repo *userRepository) GetAll() ([]user_model.User, error) {
+func (repo *userRepository) Show() (*user_model.UserReponse, error) {
 	users := []user_model.User{} 
 	// SQL query to select active users
 	query := `
-        SELECT id , last_name, first_name, user_name, login_id, email, FROM tbl_users 
-        WHERE deleted_at IS NULL 
-        ORDER BY created_at DESC
-    `
+	SELECT id, last_name, first_name, user_name, login_id, email,
+		   role_name, role_id, is_admin, login_session, last_login,
+		   currency_id, language_id, status_id, "order",
+		   created_by, created_at, updated_by, updated_at
+	FROM tbl_users 
+	WHERE deleted_at IS NULL 
+	ORDER BY created_at DESC
+`
 	err := repo.db.Select(&users, query) // Execute the query and populate the `users` slice
 	if err != nil {
 		return nil, err // Return nil and the error if the query fails
 	}
-	return users, nil
+
+	response := &user_model.UserReponse{
+		User:  users, // Include the retrieved users in the response
+		Total: len(users), // Include the total number of users in the response
+	}
+	return response, nil
 }
 
 /*
  *  Author:Noch
- *  GetByID retrieves a specific user record by its ID
+ *  ShowOne retrieves a specific user record by its ID
 */
-func (repo *userRepository) GetByID(id int) (*user_model.User, error) {
+func (repo *userRepository) ShowOne(id int) (*user_model.User, error) {
 
 	user := &user_model.User{}
     // SQL query to select a specific user by ID
 	query := `
-        SELECT * FROM tbl_users 
-        WHERE id = $1 AND deleted_at IS NULL
-    `
+	SELECT id, last_name, first_name, user_name, login_id, email,
+		   role_name, role_id, is_admin, login_session, last_login,
+		   currency_id, language_id, status_id, "order",
+		   created_by, created_at, updated_by, updated_at
+	FROM tbl_users 
+	WHERE id = $1 AND deleted_at IS NULL
+`
     // Execute the query with the given ID and populate the `user` struct
 	err := repo.db.Get(user, query, id)
 	if err != nil {   
