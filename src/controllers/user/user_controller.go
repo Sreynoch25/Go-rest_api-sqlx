@@ -25,10 +25,8 @@ type UserController struct {
      * NewUserController initializes a new UserController instance
 */
 func NewUserController(db *sqlx.DB) *UserController {
-	repo := user_repository.NewUserRepository(db)
-	service := user_service.NewUserService(repo)
 	return &UserController{
-		userService: service,
+		userService: user_repository.NewUserRepository(db),
 	}
 }
 
@@ -58,6 +56,7 @@ func (c *UserController) ShowAllUser(ctx *fiber.Ctx) error {
 */
 func (c *UserController) ShowUserByID(ctx *fiber.Ctx) error {
 	id, err := strconv.Atoi(ctx.Params("id")) 	// Extract the user ID from the URL params
+	// id , err := c.Params("id")
     // Respond with HTTP 400 (Bad Request) if the ID is invalid
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{ // Return a 400 Bad Request

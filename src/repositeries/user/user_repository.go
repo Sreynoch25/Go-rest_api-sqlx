@@ -8,7 +8,7 @@ import (
 
 // UserRepository defines the interface for user-related data access operations.
 type UserRepository interface {
-	GetAll() ([]user_model.User, error)
+	GetAll() ([]user_model.User, error) 
 	GetByID(id int) (*user_model.User, error)
 }
 
@@ -29,10 +29,10 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
  * GetAll retrieves all user records from the database that are not marked as deleted.
 */
 func (repo *userRepository) GetAll() ([]user_model.User, error) {
-	users := []user_model.User{}
+	users := []user_model.User{} 
 	// SQL query to select active users
 	query := `
-        SELECT * FROM tbl_users 
+        SELECT id , last_name, first_name, user_name, login_id, email, FROM tbl_users 
         WHERE deleted_at IS NULL 
         ORDER BY created_at DESC
     `
@@ -57,7 +57,7 @@ func (repo *userRepository) GetByID(id int) (*user_model.User, error) {
     `
     // Execute the query with the given ID and populate the `user` struct
 	err := repo.db.Get(user, query, id)
-	if err != nil {
+	if err != nil {   
 		return nil, err // Return nil and the error if the query fails
 	}
 

@@ -6,7 +6,7 @@ type User struct {
 	ID           int        `json:"id" db:"id"`
 	LastName     string     `json:"last_name" db:"last_name" validate:"required"`
 	FirstName    string     `json:"first_name" db:"first_name" validate:"required"`
-	UserName     string     `json:"user_name" db:"user_name" validate:"required"`
+	UserName     string     `json:"user_name" db:"user_name" validate:"required"` 
 	LoginID      string     `json:"login_id" db:"login_id" validate:"required"`
 	Email        string     `json:"email" db:"email" validate:"required,email"`
 	Password     string     `json:"password,omitempty" db:"password" validate:"required,min=6"`
@@ -26,3 +26,4 @@ type User struct {
 	DeletedBy    *int       `json:"deleted_by" db:"deleted_by"`
 	DeletedAt    *time.Time `json:"deleted_at" db:"deleted_at"`
 }
+

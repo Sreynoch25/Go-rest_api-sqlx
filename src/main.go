@@ -38,4 +38,5 @@ func main() {
 		appPort = "3000" // Default fallback
 	}
 	log.Fatal(app.Listen(":" + appPort))
+	// log.Fatal(app.Listen(":3000"))
 }

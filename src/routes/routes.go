@@ -10,5 +10,6 @@ import (
 func SetupRoutes(app *fiber.App, db *sqlx.DB) {
 	// User routes
 	prefix := app.Group("/api/v1")
+	
 	user_router.UserRoutes(prefix, db)
 }
