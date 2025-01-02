@@ -6,10 +6,16 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// SetupRoutes function is responsible for initializing and grouping
+/*
+ *Author: Noch
+ *SetupRoutes init all application routes
+ *Params: 
+ *	- app: The fiber application instance
+ *	- db: The database connection instance
+*/
 func SetupRoutes(app *fiber.App, db *sqlx.DB) {
-	// User routes
-	prefix := app.Group("/api/v1")
-	
-	user_router.UserRoutes(prefix, db)
+
+	prefix := app.Group("/api/v1") //Create Api V1 route group
+
+	user_router.UserRoutes(prefix, db) //Init user routes under the Api/V1
 }

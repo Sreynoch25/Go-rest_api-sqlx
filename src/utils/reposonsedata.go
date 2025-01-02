@@ -3,16 +3,18 @@ package utils
 type ResponseWithPaging struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
+	StatusCode int      `json:"status_code"`
 	Data    interface{} `json:"data"`
 	Page   int         `json:"page"`
 	PerPage int        `json:"per_page"`
 	Total  int         `json:"total"`
 }
 
-func ApiResponseWithPagination (success bool, message string, data interface{}, page int, perPage int, total int) ResponseWithPaging {
+func ApiResponseWithPagination (success bool, message string, statusCode int, data interface{}, page int, perPage int, total int) ResponseWithPaging {
 	return ResponseWithPaging{
 		Success: success,
 		Message: message,
+		StatusCode: statusCode,
 		Data: data,
 		Page: page,
 		PerPage: perPage,
@@ -52,4 +54,3 @@ func ApiResponse (success bool, message string, statusCode int, data interface{}
 	}
 	
 }
-
