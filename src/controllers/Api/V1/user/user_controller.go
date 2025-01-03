@@ -4,7 +4,6 @@ package user_controller
 import (
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 
@@ -13,6 +12,14 @@ import (
 	user_service "marketing/src/services/user"
 	"marketing/src/utils"
 )
+
+type UserFactory interface {
+    Create(ctx *fiber.Ctx) error
+    Update(ctx *fiber.Ctx) error
+    Show(ctx *fiber.Ctx) error
+    ShowOne(ctx *fiber.Ctx) error
+    Delete(ctx *fiber.Ctx) error
+}
 
 type UserController struct {
 	userService user_service.UserService
@@ -41,17 +48,6 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
 
     user, err := c.userService.Create(userReq)
     if err != nil {
-        if validationErr, ok := err.(validator.ValidationErrors); ok {
-            return ctx.Status(fiber.StatusBadRequest).JSON(
-                utils.ApiResponse(
-                    false,
-                    "Validation failed",
-                    fiber.StatusBadRequest,
-                    formatValidationErrors(validationErr),
-                ),
-            )
-        }
-        
         return ctx.Status(fiber.StatusInternalServerError).JSON(
             utils.ApiResponse(
                 false,
@@ -72,7 +68,9 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
     )
 }
 
+// Update handles the HTTP PUT request to update a user
 func (c *UserController) Update(ctx *fiber.Ctx) error {
+    // Parse user ID from URL parameters
     id, err := strconv.Atoi(ctx.Params("id"))
     if err != nil {
         return ctx.Status(fiber.StatusBadRequest).JSON(
@@ -85,54 +83,45 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
         )
     }
 
+    // Parse request body into UserRequest struct
     userReq := new(user_model.UserRequest)
     if err := ctx.BodyParser(userReq); err != nil {
         return ctx.Status(fiber.StatusBadRequest).JSON(
             utils.ApiResponse(
                 false,
-                "Invalid request body",
+                "Failed to parse request body",
                 fiber.StatusBadRequest,
                 err,
             ),
         )
     }
 
-    if err := c.userService.Update(id, userReq); err != nil {
-        if validationErr, ok := err.(validator.ValidationErrors); ok {
-            return ctx.Status(fiber.StatusBadRequest).JSON(
-                utils.ApiResponse(
-                    false,
-                    "Validation failed",
-                    fiber.StatusBadRequest,
-                    // formatValidationErrors(validationErr),
-					formatValidationErrors(validationErr), //formatValidationErrors is a function that formats the validation errors
-                ),
-            )
-        }
-
+    // Call service layer to update user
+    updatedUser, err := c.userService.Update(id, userReq)
+    if err != nil {
         return ctx.Status(fiber.StatusInternalServerError).JSON(
             utils.ApiResponse(
                 false,
                 "Failed to update user",
                 fiber.StatusInternalServerError,
-                err,
+                err.Error(),
             ),
         )
     }
 
+    // Return success response with updated user data
     return ctx.Status(fiber.StatusOK).JSON(
         utils.ApiResponse(
             true,
             "User updated successfully",
             fiber.StatusOK,
-            nil,
+            updatedUser,
         ),
     )
 }
 
-func formatValidationErrors(validationErr validator.ValidationErrors) interface{} {
-	panic("unimplemented")
-}
+
+
 
 func (c *UserController) Show(ctx *fiber.Ctx) error {
 	// Get pagination parameters
@@ -218,7 +207,9 @@ func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 	)
 }
 
+// Delete handles the HTTP DELETE request to soft delete a user
 func (c *UserController) Delete(ctx *fiber.Ctx) error {
+    // Parse user ID from URL parameters
     id, err := strconv.Atoi(ctx.Params("id"))
     if err != nil {
         return ctx.Status(fiber.StatusBadRequest).JSON(
@@ -231,18 +222,32 @@ func (c *UserController) Delete(ctx *fiber.Ctx) error {
         )
     }
 
+    // Get deleted_by from query parameters
     deletedBy := ctx.QueryInt("deleted_by", 0)
+    if deletedBy == 0 {
+        return ctx.Status(fiber.StatusBadRequest).JSON(
+            utils.ApiResponse(
+                false,
+                "deleted_by parameter is required",
+                fiber.StatusBadRequest,
+                nil,
+            ),
+        )
+    }
+
+    // Call service layer to delete user
     if err := c.userService.Delete(id, deletedBy); err != nil {
         return ctx.Status(fiber.StatusInternalServerError).JSON(
             utils.ApiResponse(
                 false,
                 "Failed to delete user",
                 fiber.StatusInternalServerError,
-                err,
+                err.Error(),
             ),
         )
     }
 
+    // Return success response
     return ctx.Status(fiber.StatusOK).JSON(
         utils.ApiResponse(
             true,
