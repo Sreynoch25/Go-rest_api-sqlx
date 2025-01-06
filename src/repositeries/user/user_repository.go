@@ -4,27 +4,48 @@ import (
 	"database/sql"
 	"fmt"
 	user_model "marketing/src/models/user"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
 
+/*
+ * Author: Noch
+ * UserRepository define the interface for user database operations
+ */
 type UserRepository interface {
-	Create(user *user_model.UserRequest) (*user_model.User, error)
-    Update(id int, user *user_model.UserRequest) (*user_model.User, error)
+	Create(user *user_model.CreateUserRequest) (*user_model.User, error)
+    Update(id int, user *user_model.UpdateUserRequest) (*user_model.User, error)
 	Show(page, perPage int) (*user_model.UsersResponse, error)
 	ShowOne(id int) (*user_model.User, error)
     Delete(id int, deletedBy int) error
 }
 
+/*
+ * Author: Noch
+ * UserRepository implements the UserRepository interface
+ */
 type userRepository struct {
-	db *sqlx.DB
+	db *sqlx.DB // Database connection
 }
 
+/*
+ * Author: Noch
+ * UserRepository create a new repository instance with the provided database connection
+ */
 func NewUserRepository(db *sqlx.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (repo *userRepository) Create(userReq *user_model.UserRequest) (*user_model.User, error) {
+/*
+ * Author: Noch
+ * UserRepository inserts a new user record into the database
+  *Params:
+ *	-  userReq: Create inserts to be inserted into the database
+  *Return:
+ *	-  created user object and any  error
+ */
+ func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user_model.User, error) {
     query := `
     INSERT INTO tbl_users (
         user_name, 
@@ -45,41 +66,53 @@ func (repo *userRepository) Create(userReq *user_model.UserRequest) (*user_model
         updated_by
     ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
-    )`
+    ) RETURNING *`
 
     var user user_model.User
-
-    _, err := repo.db.Exec(query,
+    err := repo.db.Get(&user, query,
         userReq.UserName,
         userReq.LoginID,
         userReq.Email,
         userReq.Password,
-        userReq.RoleName,       // role_name from userReq
-        userReq.RoleID,         // role_id from userReq
-        userReq.IsAdmin,        // is_admin from userReq
-        userReq.CurrencyID,     // currency_id from userReq
-        userReq.LanguageID,     // language_id from userReq
-        userReq.Profile,        // profile from userReq
-        userReq.ParentID,       // parent_id from userReq
-        userReq.Level,          // level from userReq
-        userReq.StatusID,       // status_id from userReq
-        userReq.Order,          // order from userReq
-        userReq.CreatedBy,      // created_by from userReq
-        userReq.UpdatedBy,      // updated_by from userReq
+        userReq.RoleName,     
+        userReq.RoleID,        
+        userReq.IsAdmin,        
+        userReq.CurrencyID,     
+        userReq.LanguageID,    
+        userReq.Profile,        
+        userReq.ParentID,      
+        userReq.Level,         
+        userReq.StatusID,       
+        userReq.Order,    
+        userReq.CreatedBy,         
     )
 
     if err != nil {
-        fmt.Printf("error creating user: %v\n", err)
+        // Check specifically for duplicate key violation
+        if strings.Contains(err.Error(), "duplicate key value") {
+            if strings.Contains(err.Error(), "login_id_key") {
+                return nil, fmt.Errorf("login ID already exists")
+            }
+            if strings.Contains(err.Error(), "email_key") {
+                return nil, fmt.Errorf("email already exists")
+            }
+            return nil, fmt.Errorf("duplicate value not allowed")
+        }
         return nil, fmt.Errorf("error creating user: %v", err)
     }
 
     return &user, nil
 }
-
-
-// Update performs the update operation in the database
-func (repo *userRepository) Update(id int, userReq *user_model.UserRequest) (*user_model.User, error) {
-    // Construct update query with all relevant fields
+/*
+ * Author: Noch
+ *  Update modifies an existing user record
+  *Params:
+ *	-  id: The ID of the user to be updated
+ *	-  userReq: updated user data
+  *Return:
+ *	-  updated user object and any  error
+ */
+ func (repo *userRepository) Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.User, error) {
     query := `
         UPDATE tbl_users SET
             user_name = $1,
@@ -100,9 +133,8 @@ func (repo *userRepository) Update(id int, userReq *user_model.UserRequest) (*us
         WHERE id = $15 AND deleted_at IS NULL
         RETURNING *`
 
-    // Execute update query and scan result into User struct
     var updatedUser user_model.User
-    err := repo.db.QueryRowx(query,
+    err := repo.db.Get(&updatedUser, query,
         userReq.UserName,
         userReq.LoginID,
         userReq.Email,
@@ -118,35 +150,48 @@ func (repo *userRepository) Update(id int, userReq *user_model.UserRequest) (*us
         userReq.Order,
         userReq.UpdatedBy,
         id,
-    ).StructScan(&updatedUser)
-
+    )
     if err == sql.ErrNoRows {
         return nil, fmt.Errorf("user with ID %d not found", id)
     }
+
     if err != nil {
+
         return nil, fmt.Errorf("error updating user: %v", err)
     }
 
     return &updatedUser, nil
 }
 
+/*
+ * Author: Noch
+ *   Show retrieves a paginated list of users
+  *Params:
+ *	-   page: Page number (1-based)
+ *	-   perPage: Number of items per page
+  *Return:
+ *	-  UsersResponse containing users and total count
+ */
 func (repo *userRepository) Show(page, perPage int) (*user_model.UsersResponse, error) {
+    // Calculate offset for pagination
 	offset := (page - 1) * perPage
 
+     // Get total count of non-deleted users
 	var total int
 	countQuery := `SELECT COUNT(*) FROM tbl_users WHERE deleted_at IS NULL`
-	err := repo.db.Get(&total, countQuery)
+	err := repo.db.Get(&total, countQuery)  
 	if err != nil {
 		return nil, fmt.Errorf("error counting users: %v", err)
 	}
 
+    // Fetch paginated users
 	query := `
         SELECT * FROM tbl_users 
         WHERE deleted_at IS NULL 
         ORDER BY created_at DESC
         LIMIT $1 OFFSET $2`
 
-	var users []user_model.User
+	var users []user_model.User 
 	err = repo.db.Select(&users, query, perPage, offset)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching users: %v", err)
@@ -158,6 +203,15 @@ func (repo *userRepository) Show(page, perPage int) (*user_model.UsersResponse, 
 	}, nil
 }
 
+
+/*
+ * Author: Noch
+ * Show retrieves a single of user by ID
+  *Params:
+ *	- id: retrieve  user by ID
+  *Return:
+ *	- User object if found, nil if not found, error if query fails
+ */
 func (repo *userRepository) ShowOne(id int) (*user_model.User, error) {
 	query := `
         SELECT * FROM tbl_users 
@@ -175,6 +229,15 @@ func (repo *userRepository) ShowOne(id int) (*user_model.User, error) {
 	return &user, nil
 }
 
+/*
+ * Author: Noch
+ * Delete performs a soft delete on a user record
+  *Params:
+ *	- id: ID of user to delete
+ *  - deletedBy: ID of user performing the deletion
+  *Return:
+ *	-error if deletion fails or user not found
+ */
 func (repo *userRepository) Delete(id int, deletedBy int) error {
 	query := `
         UPDATE tbl_users SET

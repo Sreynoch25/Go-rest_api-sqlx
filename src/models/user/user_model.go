@@ -30,25 +30,42 @@ type User struct {
 	DeletedAt    *time.Time `json:"deleted_at" db:"deleted_at"`
 }
 
-// UserRequest represents the structure for user creation/update requests
-type UserRequest struct {
-	UserName   string `json:"user_name" validate:"required" db:"user_name"`
-    LoginID      string     `json:"login_id" db:"login_id"`
-	Email      string `json:"email" validate:"required,email" db:"email"`
-	Password   string `json:"password" validate:"required,min=6" db:"password"`
-    RoleName     string     `json:"role_name" db:"role_name" `
-	RoleID       int        `json:"role_id" db:"role_id"`
-	IsAdmin    bool   `json:"is_admin" db:"is_admin"`
-	CurrencyID *int   `json:"currency_id" db:"currency_id"`
-	LanguageID *int   `json:"language_id" db:"language_id"`
-	Profile    string `json:"profile" db:"profile"`
-	ParentID   *int   `json:"parent_id" db:"parent_id"`
-	Level      string `json:"level" db:"level"`
-    Order        int       `json:"order" db:"order"`
-	StatusID   int    `json:"status_id" validate:"required" db:"status_id"`
-    CreatedBy    int        `json:"created_by" db:"created_by"`
-    UpdatedBy    int        `json:"updated_by" db:"updated_by"`
-   
+// CreateUserRequest represents the structure for user creation requests
+type CreateUserRequest struct {
+    UserName    string `json:"user_name" validate:"required" db:"user_name"`
+    LoginID     string `json:"login_id" db:"login_id"`
+    Email       string `json:"email" validate:"required,email" db:"email"`
+    Password    string `json:"password" validate:"required,min=6" db:"password"`
+    RoleName    string `json:"role_name" db:"role_name"`
+    RoleID      int    `json:"role_id" db:"role_id"`
+    IsAdmin     bool   `json:"is_admin" db:"is_admin"`
+    CurrencyID  *int   `json:"currency_id" db:"currency_id"`
+    LanguageID  *int   `json:"language_id" db:"language_id"`
+    Profile     string `json:"profile" db:"profile"`
+    ParentID    *int   `json:"parent_id" db:"parent_id"`
+    Level       string `json:"level" db:"level"`
+    Order       int    `json:"order" db:"order"`
+    StatusID    int    `json:"status_id" validate:"required" db:"status_id"`
+    CreatedBy   int    `json:"created_by" db:"created_by"`
+}
+
+// UpdateUserRequest represents the structure for user update requests
+type UpdateUserRequest struct {
+    UserName    string `json:"user_name" db:"user_name"`
+    LoginID     string `json:"login_id" db:"login_id"`
+    Email       string `json:"email" validate:"email" db:"email"`
+    Password    string `json:"password" validate:"min=6" db:"password"`
+    RoleName    string `json:"role_name" db:"role_name"`
+    RoleID      int    `json:"role_id" db:"role_id"`
+    IsAdmin     bool   `json:"is_admin" db:"is_admin"`
+    CurrencyID  *int   `json:"currency_id" db:"currency_id"`
+    LanguageID  *int   `json:"language_id" db:"language_id"`
+    Profile     string `json:"profile" db:"profile"`
+    ParentID    *int   `json:"parent_id" db:"parent_id"`
+    Level       string `json:"level" db:"level"`
+    Order       int    `json:"order" db:"order"`
+    StatusID    int    `json:"status_id" db:"status_id"`
+    UpdatedBy   int    `json:"updated_by" db:"updated_by"`
 }
 
 //struct for user response

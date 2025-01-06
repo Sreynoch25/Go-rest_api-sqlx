@@ -13,6 +13,7 @@ import (
 	"marketing/src/utils"
 )
 
+
 type UserFactory interface {
     Create(ctx *fiber.Ctx) error
     Update(ctx *fiber.Ctx) error
@@ -33,8 +34,14 @@ func NewUserController(db *sqlx.DB) *UserController {
 	}
 }
 
+/*
+ * Author: Noch
+ * Create handles POST requests to create a new user
+ */
 func (c *UserController) Create(ctx *fiber.Ctx) error {
-    userReq := new(user_model.UserRequest)
+
+    // Parse request body into CreateUserRequest struct
+    userReq := new(user_model.CreateUserRequest)
     if err := ctx.BodyParser(userReq); err != nil {
         return ctx.Status(fiber.StatusBadRequest).JSON(
             utils.ApiResponse(
@@ -46,6 +53,7 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
         )
     }
 
+    // Calls the service layer to create the user
     user, err := c.userService.Create(userReq)
     if err != nil {
         return ctx.Status(fiber.StatusInternalServerError).JSON(
@@ -58,6 +66,7 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
         )
     }
 
+    //Return appropriate response with the status code
     return ctx.Status(fiber.StatusCreated).JSON(
         utils.ApiResponse(
             true,
@@ -68,7 +77,10 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
     )
 }
 
-// Update handles the HTTP PUT request to update a user
+/*
+ * Author: Noch
+ *  Update handles PUT requests to update an existing user
+ */
 func (c *UserController) Update(ctx *fiber.Ctx) error {
     // Parse user ID from URL parameters
     id, err := strconv.Atoi(ctx.Params("id"))
@@ -83,8 +95,8 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
         )
     }
 
-    // Parse request body into UserRequest struct
-    userReq := new(user_model.UserRequest)
+    // Parse request body into UpdateUserRequest struct
+    userReq := new(user_model.UpdateUserRequest)
     if err := ctx.BodyParser(userReq); err != nil {
         return ctx.Status(fiber.StatusBadRequest).JSON(
             utils.ApiResponse(
@@ -120,7 +132,10 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
     )
 }
 
-
+/*
+ * Author: Noch
+ * Show handles GET requests to retrieve a paginated list of users
+ */
 
 
 func (c *UserController) Show(ctx *fiber.Ctx) error {
@@ -157,8 +172,13 @@ func (c *UserController) Show(ctx *fiber.Ctx) error {
 	)
 }
 
+/*
+ * Author: Noch
+ * ShowOne handles GET requests to retrieve a single user by ID
+ */
 func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
-	// Parse ID parameter
+
+	// Extracts user ID from URL parameters
 	id, err := strconv.Atoi(ctx.Params("id")) //strconv is used to convert string to int
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(
@@ -184,7 +204,7 @@ func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 		)
 	}
 
-	// Handle not found
+	// Handle not found case
 	if user == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(
 			utils.ApiResponse(
@@ -196,7 +216,7 @@ func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 		)
 	}
 
-	// Return successful response
+	// Returns user data if found
 	return ctx.Status(fiber.StatusOK).JSON(
 		utils.ApiResponse(
 			true,
@@ -207,7 +227,13 @@ func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 	)
 }
 
-// Delete handles the HTTP DELETE request to soft delete a user
+/*
+ * Author: Noch
+ * Delete handles DELETE requests to soft delete a user
+  * Required parameters:
+ *	-  id: user ID (from URL)
+ *	-   deleted_by: ID of user performing the deletion (from query string)
+ */
 func (c *UserController) Delete(ctx *fiber.Ctx) error {
     // Parse user ID from URL parameters
     id, err := strconv.Atoi(ctx.Params("id"))

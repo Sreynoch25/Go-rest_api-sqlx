@@ -2,13 +2,17 @@
 package user_service
 
 import (
-    user_model "marketing/src/models/user"
-    user_repository "marketing/src/repositeries/user"
+	user_model "marketing/src/models/user"
+	user_repository "marketing/src/repositeries/user"
 )
 
+/*
+ *Author: Noch
+ *UserRoutes sets up all user-related routes
+ */
 type UserService interface {
-    Create(userReq *user_model.UserRequest) (*user_model.User, error)
-    Update(id int, userReq *user_model.UserRequest) (*user_model.User, error)
+    Create(userReq *user_model.CreateUserRequest) (*user_model.User, error)
+    Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.User, error)
     Delete(id int, deletedBy int) error
     Show(page, perPage int) (*user_model.UsersResponse, error)
     ShowOne(id int) (*user_model.User, error)
@@ -24,13 +28,16 @@ func NewUserService(repo user_repository.UserRepository) UserService {
     }
 }
 
-func (s *userService) Create(userReq *user_model.UserRequest) (*user_model.User, error) {
+func (s *userService) Create(userReq *user_model.CreateUserRequest) (*user_model.User, error) {
     
     return s.repo.Create(userReq)
 }
 
-// Update calls the repository layer to update a user and returns the updated user
-func (s *userService) Update(id int, userReq *user_model.UserRequest) (*user_model.User, error) {
+/*
+ *Author: Noch
+ *UserRoutes sets up all user-related routes
+ */
+func (s *userService) Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.User, error) {
     return s.repo.Update(id, userReq)
 }
 
