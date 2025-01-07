@@ -81,7 +81,7 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
  * Author: Noch
  *  Update handles PUT requests to update an existing user
  */
-func (c *UserController) Update(ctx *fiber.Ctx) error {
+ func (c *UserController) Update(ctx *fiber.Ctx) error {
     // Parse user ID from URL parameters
     id, err := strconv.Atoi(ctx.Params("id"))
     if err != nil {

@@ -9,6 +9,7 @@ type NotificationService interface{
 	Create(req *notification_model.CreateNotificationRequest) (*notification_model.Notification, error) 
 	Update(id int, req *notification_model.UpdateNotificationRequest) (*notification_model.Notification, error)
 	Show(page, pageSize int) (*notification_model.NotificationsResponse , error) 
+	Delete(id, deletedBy int) error
 }
 
 type notificationService struct {
@@ -28,7 +29,16 @@ func (s *notificationService) Update(id int, req *notification_model.UpdateNotif
 	return s.repo.Update(id, req)
 }
 
-func(s *notificationService) Show(page, pageSize int) (*notification_model.NotificationsResponse , error) {
-	offset := (page -1 ) * pageSize
-	return s.repo.Show(offset, pageSize)
-} 
+// func(s *notificationService) Show(page,  int) (*notification_model.NotificationsResponse , error) {
+// 	offset := (page -1 ) * pageSize
+// 	return s.repo.Show(offset, pageSize)
+// } 
+
+func (s *notificationService) Show(page, perPage int) (*notification_model.NotificationsResponse, error) {
+    return s.repo.Show(page, perPage)
+}
+
+
+func(s *notificationService) Delete(id, deletedBy int) error {
+	return s.repo.Delete(id, deletedBy)
+}
