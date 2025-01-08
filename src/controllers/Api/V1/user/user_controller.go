@@ -38,8 +38,7 @@ func NewUserController(db *sqlx.DB) *UserController {
  * Author: Noch
  * Create handles POST requests to create a new user
  */
-func (c *UserController) Create(ctx *fiber.Ctx) error {
-
+ func (c *UserController) Create(ctx *fiber.Ctx) error {
     // Parse request body into CreateUserRequest struct
     userReq := new(user_model.CreateUserRequest)
     if err := ctx.BodyParser(userReq); err != nil {
@@ -52,6 +51,22 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
             ),
         )
     }
+
+    // Hash the password before creating the user
+    hashedPassword, err := utils.HashPassword(userReq.Password)
+    if err != nil {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(
+            utils.ApiResponse(
+                false,
+                "Failed to process password",
+                fiber.StatusInternalServerError,
+                nil, // Don't return the actual error for security
+            ),
+        )
+    }
+
+    // Update the password in the request with the hashed version
+    userReq.Password = hashedPassword
 
     // Calls the service layer to create the user
     user, err := c.userService.Create(userReq)
@@ -66,7 +81,6 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
         )
     }
 
-    //Return appropriate response with the status code
     return ctx.Status(fiber.StatusCreated).JSON(
         utils.ApiResponse(
             true,
@@ -76,6 +90,44 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
         ),
     )
 }
+// func (c *UserController) Create(ctx *fiber.Ctx) error {
+
+//     // Parse request body into CreateUserRequest struct
+//     userReq := new(user_model.CreateUserRequest)
+//     if err := ctx.BodyParser(userReq); err != nil {
+//         return ctx.Status(fiber.StatusBadRequest).JSON(
+//             utils.ApiResponse(
+//                 false,
+//                 "Failed to parse request body",
+//                 fiber.StatusBadRequest,
+//                 err.Error(),
+//             ),
+//         )
+//     }
+
+//     // Calls the service layer to create the user
+//     user, err := c.userService.Create(userReq)
+//     if err != nil {
+//         return ctx.Status(fiber.StatusInternalServerError).JSON(
+//             utils.ApiResponse(
+//                 false,
+//                 "Failed to create user",
+//                 fiber.StatusInternalServerError,
+//                 err.Error(),
+//             ),
+//         )
+//     }
+
+//     //Return appropriate response with the status code
+//     return ctx.Status(fiber.StatusCreated).JSON(
+//         utils.ApiResponse(
+//             true,
+//             "User created successfully",
+//             fiber.StatusCreated,
+//             user,
+//         ),
+//     )
+// }
 
 /*
  * Author: Noch

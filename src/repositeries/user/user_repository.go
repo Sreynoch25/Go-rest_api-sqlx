@@ -260,3 +260,4 @@ func (repo *userRepository) Delete(id int, deletedBy int) error {
 
 	return nil
 }
+

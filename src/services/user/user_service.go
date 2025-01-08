@@ -25,7 +25,6 @@ func NewUserService(repo user_repository.UserRepository) UserService {
 }
 
 func (s *userService) Create(userReq *user_model.CreateUserRequest) (*user_model.User, error) {
-    
     return s.repo.Create(userReq)
 }
 

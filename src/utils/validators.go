@@ -7,7 +7,7 @@ import (
 
 )
 
-func ValidateEnail(email string) bool {
+func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
 	re := regexp.MustCompile(pattern)
@@ -27,7 +27,7 @@ func ValidateUser(user *user_model.User) error {
 		return errors.New("missing required  fields")
 	}
 
-	if !ValidateEnail(user.Email) {
+	if !ValidateEmail(user.Email) {
 		return errors.New("invalid email format")
 	}
 

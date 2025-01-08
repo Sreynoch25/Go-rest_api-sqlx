@@ -80,13 +80,3 @@ type UsersResponse struct {
 	Total int    `json:"total"`
 }
 
-type UserLogin struct {
-    Email string `json:"email" db:"email" validate:"required,email"`
-    Password string   `json:"password" validate:"required"`
-}
-
-type LoginResponse struct {
-	Token string `json:"token"`
-	User  *User  `json:"user"`
-	ExpiredAt time.Time `json:"expired_at"`
-}
