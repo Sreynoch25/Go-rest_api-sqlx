@@ -28,14 +28,4 @@ import (
     user_router.UserRoutes(prefix, db)
     notifications_routes.Notification(prefix, db)
 }
-// func SetupRoutes(app *fiber.App, db *sqlx.DB) {
 
-// 	prefix := app.Group("/api/v1")
-// 	auth_routes.Auth(prefix, db)
-// 	// jwtSECRET := os.Getenv("JWT_SECRET")
-
-// 	prefix.Use(middleware.Protected())
-
-// 	user_router.UserRoutes(prefix, db) //Init user routes under the Api/V1
-// 	notifications_routes.Notification(prefix, db)
-// }

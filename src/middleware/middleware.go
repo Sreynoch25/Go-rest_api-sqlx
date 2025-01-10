@@ -11,11 +11,6 @@ import (
 	"os"
 )
 
-// Config holds the middleware configuration
-// type Config struct {
-// 	SecretKey string
-// }
-
 // Protected creates a JWT protection middleware with configuration
 func Protected() fiber.Handler {
 	return func(c *fiber.Ctx) error {

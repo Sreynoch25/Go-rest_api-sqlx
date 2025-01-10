@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -45,17 +46,20 @@ func (repo *authRepository) Login(loginRequest auth_model.LoginRequest) (*auth_m
 		return nil, errors.New("invalid Username or password")
 	}
 
+	//Generate UUID for login session
+	sessionUUID := uuid.New().String()
+
 	// Generate JWT token
-	token, err := repo.generateJWT(&auth)
+	token, err := repo.generateJWT(&auth, sessionUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error generating token: %w", err)
 	}
 
 	// Update user's login information
-	err = repo.UpdateUserLogin(auth.ID, token)
+	err = repo.UpdateUserLogin(auth.ID, sessionUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error updating user login information: %w", err)
-	}
+	} 
 
 	return &auth_model.LoginResponse{
 		Message:    "Login successful",
@@ -99,14 +103,14 @@ func (repo *authRepository) UpdateUserLogin(userID int, loginSession string) err
 
 }
 
-func (repo *authRepository) generateJWT(auth *auth_model.AuthUser) (string, error) {
+func (repo *authRepository) generateJWT(auth *auth_model.AuthUser, loginSession string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
 		"user_id":       auth.ID,
 		"user_name":     auth.UserName,
 		"email":         auth.Email,
 		"role_id":       auth.RoleID,
-		"login_session": auth.LoginSession,
+		"login_session": loginSession,
 		"exp":          expirationTime.Unix(),
 	}
 
