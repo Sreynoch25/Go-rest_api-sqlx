@@ -8,14 +8,15 @@ type AuthUser struct {
     RoleName     string `db:"role_name" json:"role_name"`
     RoleID       int    `db:"role_id" json:"role_id"`
     IsAdmin      bool   `db:"is_admin" json:"is_admin"`
-    LastLogin    string `db:"last_login" json:"last_login"`
-    LoginSession string `db:"login_session" json:"login_session"`
+    LastLogin    *string `db:"last_login" json:"last_login"`
+    LoginSession *string `db:"login_session" json:"login_session"`
 }
 
-type UserLogin struct {
-    Email string `json:"email" db:"email" validate:"required,email"`
+type LoginRequest struct {
+    UserName     string `json:"user_name" db:"user_name"`
     Password string   `json:"password" validate:"required"`
 }
+ 
 
 type LoginResponse struct {
     Message    string `json:"message"`

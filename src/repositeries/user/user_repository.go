@@ -14,8 +14,8 @@ import (
  * UserRepository define the interface for user database operations
  */
 type UserRepository interface {
-	Create(user *user_model.CreateUserRequest) (*user_model.User, error)
-	Update(id int, user *user_model.UpdateUserRequest) (*user_model.User, error)
+	Create(userReq *user_model.CreateUserRequest) (*user_model.CreateUserResponse, error)
+	Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.UpdateUserResponse, error)
 	Show(page, perPage int) (*user_model.UsersResponse, error)
 	ShowOne(id int) (*user_model.User, error)
 	Delete(id int, deletedBy int) error
@@ -45,7 +45,7 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
   *Return:
  *	-  created user object and any  error
 */
-func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user_model.User, error) {
+func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user_model.CreateUserResponse, error) {
 	query := `
     INSERT INTO tbl_users (
         user_name, 
@@ -64,10 +64,10 @@ func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user
         "order",
         created_by
     ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15 
     ) RETURNING *`
 
-	var user user_model.User
+	var user user_model.CreateUserResponse
 	err := repo.db.Get(&user, query,
 		userReq.UserName,
 		userReq.LoginID,
@@ -112,7 +112,7 @@ func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user
   *Return:
  *	-  updated user object and any  error
 */
-func (repo *userRepository) Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.User, error) {
+func (repo *userRepository) Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.UpdateUserResponse, error) {
 	query := `
         UPDATE tbl_users SET
             user_name = $1,
@@ -133,7 +133,7 @@ func (repo *userRepository) Update(id int, userReq *user_model.UpdateUserRequest
         WHERE id = $15 AND deleted_at IS NULL
         RETURNING *`
 
-	var updatedUser user_model.User
+	var updatedUser user_model.UpdateUserResponse
 	err := repo.db.Get(&updatedUser, query,
 		userReq.UserName,
 		userReq.LoginID,
@@ -260,4 +260,3 @@ func (repo *userRepository) Delete(id int, deletedBy int) error {
 
 	return nil
 }
-

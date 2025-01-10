@@ -27,10 +27,8 @@ type UserController struct {
 }
 
 func NewUserController(db *sqlx.DB) *UserController {
-	repo := user_repository.NewUserRepository(db)
-	service := user_service.NewUserService(repo)
 	return &UserController{
-		userService: service,
+		userService: user_repository.NewUserRepository(db),
 	}
 }
 
@@ -90,45 +88,6 @@ func NewUserController(db *sqlx.DB) *UserController {
         ),
     )
 }
-// func (c *UserController) Create(ctx *fiber.Ctx) error {
-
-//     // Parse request body into CreateUserRequest struct
-//     userReq := new(user_model.CreateUserRequest)
-//     if err := ctx.BodyParser(userReq); err != nil {
-//         return ctx.Status(fiber.StatusBadRequest).JSON(
-//             utils.ApiResponse(
-//                 false,
-//                 "Failed to parse request body",
-//                 fiber.StatusBadRequest,
-//                 err.Error(),
-//             ),
-//         )
-//     }
-
-//     // Calls the service layer to create the user
-//     user, err := c.userService.Create(userReq)
-//     if err != nil {
-//         return ctx.Status(fiber.StatusInternalServerError).JSON(
-//             utils.ApiResponse(
-//                 false,
-//                 "Failed to create user",
-//                 fiber.StatusInternalServerError,
-//                 err.Error(),
-//             ),
-//         )
-//     }
-
-//     //Return appropriate response with the status code
-//     return ctx.Status(fiber.StatusCreated).JSON(
-//         utils.ApiResponse(
-//             true,
-//             "User created successfully",
-//             fiber.StatusCreated,
-//             user,
-//         ),
-//     )
-// }
-
 /*
  * Author: Noch
  *  Update handles PUT requests to update an existing user

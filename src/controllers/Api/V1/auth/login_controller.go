@@ -1,9 +1,7 @@
 package auth_controller
 
 import (
-	"fmt"
 	auth_model "marketing/src/models/auth"
-	auth_repository "marketing/src/repositeries/auth"
 	auth_service "marketing/src/services/auth"
 	"marketing/src/utils"
 
@@ -23,14 +21,15 @@ type AuthController struct {
 // 	}
 // }
 
-func NewAuthController(db *sqlx.DB, jwtSecret string) *AuthController {
+func NewAuthController(db *sqlx.DB) *AuthController {
 	return &AuthController{
-		authService: auth_service.NewAuthService(auth_repository.NewAuthRepository(db), jwtSecret),
+		// 
+		authService:  auth_service.NewAuthService(db),
 	}
 }
 
 func (c *AuthController) Login(ctx *fiber.Ctx) error {
-	loginRequest := auth_model.UserLogin{}
+	loginRequest := auth_model.LoginRequest{}
 	if err := ctx.BodyParser(&loginRequest); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(
 			utils.ApiResponse(
@@ -43,7 +42,7 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 	}
 
 	response, err := c.authService.UserLogin(loginRequest)
-	fmt.Println("ddd", err)
+	// fmt.Println("ddd", err)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(
 			utils.ApiResponse(

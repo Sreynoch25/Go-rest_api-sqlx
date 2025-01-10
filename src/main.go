@@ -14,12 +14,12 @@ import (
  *Author: Noch
  *init this called before main, sets up the environment variables
 */
-func init() {
-	// Load environment variables from .env file , if no .env file exists
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, proceeding without it")
-	}
-}
+// func init() {
+// 	
+// 	if err := godotenv.Load(); err != nil {
+// 		log.Println("No .env file found, proceeding without it")
+// 	}
+// }
 
 
 /*
@@ -27,6 +27,12 @@ func init() {
  *main is the application entry point
 */
 func main() {
+
+	// Load environment variables from .env file , if no .env file exists
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, proceeding without it")
+	}
+	
 	// Database connection
 	db, err := config.ConnectDB()
 	if err != nil {

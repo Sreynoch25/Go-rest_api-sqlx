@@ -1,42 +1,76 @@
+
 package middleware
 
 import (
 	"strings"
+	"time"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"os"
 )
 
+// Config holds the middleware configuration
+// type Config struct {
+// 	SecretKey string
+// }
+
+// Protected creates a JWT protection middleware with configuration
 func Protected() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("authorization")
+		// Get authorization header
+		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return c.Status(401).JSON(fiber.Map{
-				"error": "Missing authorization header",
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Missing authorization",
 			})
 		}
 
-		tokenString := strings.Replace(authHeader, "Bearer", "", 1)
+		// Parse Bearer token
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid authorization format",
+			})
+		}
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte("secret"), nil
+		tokenString := strings.TrimSpace(parts[1])
+
+		// Parse and validate token
+		token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+			// Validate signing algorithm
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
-		if err != nil || !token.Valid {
-			return c.Status(401).JSON(fiber.Map{
-				"error": "Invalid 0r expired token",
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid or expired token",
 			})
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			return c.Status(401).JSON(fiber.Map{
+		// Validate token claims
+		claims, ok := token.Claims.(*jwt.RegisteredClaims)
+		if !ok || !token.Valid {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token claims",
 			})
 		}
 
+		// Check if token is expired
+		if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Token has expired",
+			})
+		}
+
+		// Store claims in context
 		c.Locals("user", claims)
 		return c.Next()
 	}
-
 }
+
+ 
