@@ -81,9 +81,11 @@ type UsersResponse struct {
 	Users []User `json:"users"`
 	Total int    `json:"total"`
 }
+
 type CreateUserResponse struct {
 	User *User `json:"user"`
 }
+
 type UpdateUserResponse struct {
 	User *User `json:"user"`
 }

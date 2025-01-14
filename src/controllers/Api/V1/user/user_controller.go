@@ -15,10 +15,10 @@ import (
 
 
 type UserFactory interface {
-    Create(ctx *fiber.Ctx) error
-    Update(ctx *fiber.Ctx) error
     Show(ctx *fiber.Ctx) error
     ShowOne(ctx *fiber.Ctx) error
+    Create(ctx *fiber.Ctx) error
+    Update(ctx *fiber.Ctx) error
     Delete(ctx *fiber.Ctx) error
 }
 
@@ -30,6 +30,101 @@ func NewUserController(db *sqlx.DB) *UserController {
 	return &UserController{
 		userService: user_repository.NewUserRepository(db),
 	}
+}
+
+/*
+ * Author: Noch
+ * Show handles GET requests to retrieve a paginated list of users
+ */
+
+
+func (c *UserController) Show(ctx *fiber.Ctx) error {
+	// Get pagination parameters
+	page := ctx.QueryInt("page", 1)
+	perPage := ctx.QueryInt("per_page", 2) //ctx.QueryInt is used to get the query params from url
+
+	// Get users with pagination
+	response, err := c.userService.Show(page, perPage)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(
+			utils.ApiResponse(
+				false,
+				"Failed to fetch users",
+				fiber.StatusInternalServerError,
+				err,
+			),
+		)
+	}
+
+
+
+	// Return successful response
+	return ctx.Status(fiber.StatusOK).JSON(
+		utils.ApiResponseWithPagination(
+			true,
+			"Users retrieved successfully",
+			6000,
+			response,
+			page,
+			perPage,
+			response.Total,
+		),
+	)
+}
+
+/*
+ * Author: Noch
+ * ShowOne handles GET requests to retrieve a single user by ID
+ */
+func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
+
+	// Extracts user ID from URL parameters
+	id, err := strconv.Atoi(ctx.Params("id")) //strconv is used to convert string to int
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(
+			utils.ApiResponse(
+				false,
+				"Invalid user ID format",
+				fiber.StatusBadRequest,
+				err,
+			),
+		)
+	}
+
+	// Get user
+	user, err := c.userService.ShowOne(id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(
+			utils.ApiResponse(
+				false,
+				"Failed to fetch user",
+				fiber.StatusInternalServerError,
+				err,
+			),
+		)
+	}
+
+	// Handle not found case
+	if user == nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(
+			utils.ApiResponse(
+				false,
+				"User not found",
+				fiber.StatusNotFound,
+				nil,
+			),
+		)
+	}
+
+	// Returns user data if found
+	return ctx.Status(fiber.StatusOK).JSON(
+		utils.ApiResponse(
+			true,
+			"User retrieved successfully",
+			fiber.StatusOK,
+			user,
+		),
+	)
 }
 
 /*
@@ -141,101 +236,6 @@ func NewUserController(db *sqlx.DB) *UserController {
             updatedUser,
         ),
     )
-}
-
-/*
- * Author: Noch
- * Show handles GET requests to retrieve a paginated list of users
- */
-
-
-func (c *UserController) Show(ctx *fiber.Ctx) error {
-	// Get pagination parameters
-	page := ctx.QueryInt("page", 1)
-	perPage := ctx.QueryInt("per_page", 2) //ctx.QueryInt is used to get the query params from url
-
-	// Get users with pagination
-	response, err := c.userService.Show(page, perPage)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(
-			utils.ApiResponse(
-				false,
-				"Failed to fetch users",
-				fiber.StatusInternalServerError,
-				err,
-			),
-		)
-	}
-
-
-
-	// Return successful response
-	return ctx.Status(fiber.StatusOK).JSON(
-		utils.ApiResponseWithPagination(
-			true,
-			"Users retrieved successfully",
-			6000,
-			response,
-			page,
-			perPage,
-			response.Total,
-		),
-	)
-}
-
-/*
- * Author: Noch
- * ShowOne handles GET requests to retrieve a single user by ID
- */
-func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
-
-	// Extracts user ID from URL parameters
-	id, err := strconv.Atoi(ctx.Params("id")) //strconv is used to convert string to int
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(
-			utils.ApiResponse(
-				false,
-				"Invalid user ID format",
-				fiber.StatusBadRequest,
-				err,
-			),
-		)
-	}
-
-	// Get user
-	user, err := c.userService.ShowOne(id)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(
-			utils.ApiResponse(
-				false,
-				"Failed to fetch user",
-				fiber.StatusInternalServerError,
-				err,
-			),
-		)
-	}
-
-	// Handle not found case
-	if user == nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(
-			utils.ApiResponse(
-				false,
-				"User not found",
-				fiber.StatusNotFound,
-				nil,
-			),
-		)
-	}
-
-	// Returns user data if found
-	return ctx.Status(fiber.StatusOK).JSON(
-		utils.ApiResponse(
-			true,
-			"User retrieved successfully",
-			fiber.StatusOK,
-			user,
-		),
-	)
 }
 
 /*

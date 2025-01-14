@@ -4,6 +4,7 @@ import (
 	"marketing/src/middleware"
 	auth_routes "marketing/src/routes/auth"
 	notifications_routes "marketing/src/routes/notifications"
+	"marketing/src/routes/role_router.go"
 	user_router "marketing/src/routes/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,6 +27,7 @@ import (
    
 
     user_router.UserRoutes(prefix, db)
+    role_router.RoleRoutes(prefix, db)
     notifications_routes.Notification(prefix, db)
 }
 

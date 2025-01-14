@@ -14,10 +14,10 @@ import (
  * UserRepository define the interface for user database operations
  */
 type UserRepository interface {
-	Create(userReq *user_model.CreateUserRequest) (*user_model.CreateUserResponse, error)
-	Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.UpdateUserResponse, error)
 	Show(page, perPage int) (*user_model.UsersResponse, error)
 	ShowOne(id int) (*user_model.User, error)
+	Create(userReq *user_model.CreateUserRequest) (*user_model.CreateUserResponse, error)
+	Update(id int, userReq *user_model.UpdateUserRequest) (*user_model.UpdateUserResponse, error)
 	Delete(id int, deletedBy int) error
 }
 
@@ -37,6 +37,71 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
+
+/*
+ * Author: Noch
+ *   Show retrieves a paginated list of users
+  *Params:
+ *	-   page: Page number (1-based)
+ *	-   perPage: Number of items per page
+  *Return:
+ *	-  UsersResponse containing users and total count
+*/
+func (repo *userRepository) Show(page, perPage int) (*user_model.UsersResponse, error) {
+	// Calculate offset for pagination
+	offset := (page - 1) * perPage
+
+	// Get total count of non-deleted users
+	var total int
+	countQuery := `SELECT COUNT(*) FROM tbl_users WHERE deleted_at IS NULL`
+	err := repo.db.Get(&total, countQuery)
+	if err != nil {
+		return nil, fmt.Errorf("error counting users: %v", err)
+	}
+
+	// Fetch paginated users
+	query := `
+        SELECT * FROM tbl_users 
+        WHERE deleted_at IS NULL 
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2`
+
+	var users []user_model.User
+	err = repo.db.Select(&users, query, perPage, offset)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching users: %v", err)
+	}
+
+	return &user_model.UsersResponse{
+		Users: users,
+		Total: total,
+	}, nil
+}
+
+/*
+ * Author: Noch
+ * Show retrieves a single of user by ID
+  *Params:
+ *	- id: retrieve  user by ID
+  *Return:
+ *	- User object if found, nil if not found, error if query fails
+*/
+func (repo *userRepository) ShowOne(id int) (*user_model.User, error) {
+	query := `
+        SELECT * FROM tbl_users 
+        WHERE id = $1 AND deleted_at IS NULL`
+
+	var user user_model.User
+	err := repo.db.Get(&user, query, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error fetching user: %v", err)
+	}
+
+	return &user, nil
+}
 /*
  * Author: Noch
  * UserRepository inserts a new user record into the database
@@ -161,71 +226,6 @@ func (repo *userRepository) Update(id int, userReq *user_model.UpdateUserRequest
 	}
 
 	return &updatedUser, nil
-}
-
-/*
- * Author: Noch
- *   Show retrieves a paginated list of users
-  *Params:
- *	-   page: Page number (1-based)
- *	-   perPage: Number of items per page
-  *Return:
- *	-  UsersResponse containing users and total count
-*/
-func (repo *userRepository) Show(page, perPage int) (*user_model.UsersResponse, error) {
-	// Calculate offset for pagination
-	offset := (page - 1) * perPage
-
-	// Get total count of non-deleted users
-	var total int
-	countQuery := `SELECT COUNT(*) FROM tbl_users WHERE deleted_at IS NULL`
-	err := repo.db.Get(&total, countQuery)
-	if err != nil {
-		return nil, fmt.Errorf("error counting users: %v", err)
-	}
-
-	// Fetch paginated users
-	query := `
-        SELECT * FROM tbl_users 
-        WHERE deleted_at IS NULL 
-        ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2`
-
-	var users []user_model.User
-	err = repo.db.Select(&users, query, perPage, offset)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching users: %v", err)
-	}
-
-	return &user_model.UsersResponse{
-		Users: users,
-		Total: total,
-	}, nil
-}
-
-/*
- * Author: Noch
- * Show retrieves a single of user by ID
-  *Params:
- *	- id: retrieve  user by ID
-  *Return:
- *	- User object if found, nil if not found, error if query fails
-*/
-func (repo *userRepository) ShowOne(id int) (*user_model.User, error) {
-	query := `
-        SELECT * FROM tbl_users 
-        WHERE id = $1 AND deleted_at IS NULL`
-
-	var user user_model.User
-	err := repo.db.Get(&user, query, id)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("error fetching user: %v", err)
-	}
-
-	return &user, nil
 }
 
 /*
