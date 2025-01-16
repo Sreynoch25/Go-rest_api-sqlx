@@ -2,11 +2,13 @@
 package user_controller
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 
+	"marketing/src/middleware"
 	user_model "marketing/src/models/user"
 	user_repository "marketing/src/repositeries/user"
 	user_service "marketing/src/services/user"
@@ -38,10 +40,27 @@ func NewUserController(db *sqlx.DB) *UserController {
  */
 
 
-func (c *UserController) Show(ctx *fiber.Ctx) error {
+ func (c *UserController) Show(ctx *fiber.Ctx) error {
 	// Get pagination parameters
 	page := ctx.QueryInt("page", 1)
 	perPage := ctx.QueryInt("per_page", 2) //ctx.QueryInt is used to get the query params from url
+
+	// i will test print the user context that store in go
+	userContext := ctx.Locals("UserContext")
+	var uCtx middleware.UserContext
+	if context_map, ok := userContext.(middleware.UserContext); ok {
+		uCtx = context_map
+		fmt.Println("user context email : ", uCtx.Email)
+		fmt.Println("user context exp : ", uCtx.Exp)
+		fmt.Println("user context login session : ", uCtx.LoginSession)
+		fmt.Println("user context role id : ", uCtx.RoleId)
+		fmt.Println("user context user id : ", uCtx.UserID)
+		fmt.Println("user context username : ", uCtx.UserName)
+		fmt.Println("user context user agent : ", uCtx.UserAgent)
+		fmt.Println("user context ip : ", uCtx.Ip)
+	} else {
+		fmt.Println("cannot map user context")
+	}
 
 	// Get users with pagination
 	response, err := c.userService.Show(page, perPage)
@@ -55,8 +74,6 @@ func (c *UserController) Show(ctx *fiber.Ctx) error {
 			),
 		)
 	}
-
-
 
 	// Return successful response
 	return ctx.Status(fiber.StatusOK).JSON(
@@ -105,7 +122,7 @@ func (c *UserController) ShowOne(ctx *fiber.Ctx) error {
 	}
 
 	// Handle not found case
-	if user == nil {
+	if user == nil {    
 		return ctx.Status(fiber.StatusNotFound).JSON(
 			utils.ApiResponse(
 				false,

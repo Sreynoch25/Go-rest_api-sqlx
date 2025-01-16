@@ -49,8 +49,6 @@ type CreateUserRequest struct {
     CreatedBy   int    `json:"created_by" db:"created_by"`
 }
 
-
-
 // UpdateUserRequest represents the structure for user update requests
 type UpdateUserRequest struct {
     UserName    string `json:"user_name" db:"user_name"`

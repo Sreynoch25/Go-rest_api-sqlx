@@ -26,6 +26,10 @@ type CreateRoleRequest struct {
 	CreatedBy int    `db:"created_by" json:"created_by"`
 }
 
+type CreateRoleResponse struct {
+	Role *Role `json:"role"`
+}
+
 type UpdateRoleRequest struct {
 	RoleName  string `db:"role_name" json:"role_name"`
 	Remark    string `db:"remark" json:"remark"`
@@ -43,9 +47,7 @@ type RolesResponse struct {
 	Total int    `json:"total"`
 }
 
-type CreateRoleResponse struct {
-	Role Role `json:"role"`
-}
+
 
 type UpdateRoleResponse struct {
 	Role Role `json:"role"`

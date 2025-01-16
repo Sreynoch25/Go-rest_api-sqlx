@@ -10,16 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
-/*
- *Author: Noch
- *init this called before main, sets up the environment variables
-*/
-// func init() {
-// 	
-// 	if err := godotenv.Load(); err != nil {
-// 		log.Println("No .env file found, proceeding without it")
-// 	}
-// }
 
 
 /*
@@ -38,8 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-
 	
 	defer db.Close()
 

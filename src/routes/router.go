@@ -23,7 +23,8 @@ import (
     prefix := app.Group("/api/v1")  //Create Api V1 route group
 	auth_routes.Auth(prefix, db)
 	// Use the protected middleware with configuration
-	prefix.Use(middleware.Protected())
+	prefix.Use(middleware.JwtMiddleware())
+	// prefix.Use(middleware.Protected())
    
 
     user_router.UserRoutes(prefix, db)

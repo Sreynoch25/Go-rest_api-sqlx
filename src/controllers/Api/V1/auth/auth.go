@@ -13,14 +13,6 @@ type AuthController struct {
 	authService auth_service.AuthService
 }
 
-// func NewAuthControllerb (*sqlx.DB) *AuthController{
-// 	repo := auth_service.NewAuthService(db, jwtSecret)
-// 	authService := auth_service.NewAuthService(repo)
-// 	return &AuthController{
-// 		authService: authService,
-// 	}
-// }
-
 func NewAuthController(db *sqlx.DB) *AuthController {
 	return &AuthController{
 		// 
@@ -42,7 +34,6 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 	}
 
 	response, err := c.authService.UserLogin(loginRequest)
-	// fmt.Println("ddd", err)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(
 			utils.ApiResponse(
@@ -63,6 +54,7 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 			fiber.StatusOK,
 			fiber.Map{
 				"token": response.Token,
+				
 			},
 		),
 	)

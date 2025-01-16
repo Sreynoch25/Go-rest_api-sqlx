@@ -132,7 +132,7 @@ func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15 
     ) RETURNING *`
 
-	var user user_model.CreateUserResponse
+	var user user_model.User
 	err := repo.db.Get(&user, query,
 		userReq.UserName,
 		userReq.LoginID,
@@ -165,7 +165,9 @@ func (repo *userRepository) Create(userReq *user_model.CreateUserRequest) (*user
 		return nil, fmt.Errorf("error creating user: %v", err)
 	}
 
-	return &user, nil
+	return &user_model.CreateUserResponse{
+		User: &user,
+	}, nil
 }
 
 /*
